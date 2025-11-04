@@ -1,0 +1,295 @@
+* {
+  box-sizing: border-box;
+  font-family: Inter, sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 10px;
+  background-color: #282c34;
+  min-height: 100vh;
+  justify-content: flex-start;
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  overflow-y: auto;
+}
+
+header {
+  color: white;
+  text-align: center;
+  max-width: 500px;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+main {
+  margin: 0;
+  color: black;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  max-width: 100%;
+  padding: 10px;
+}
+
+header > h1 {
+  font-size: 2rem;
+  font-weight: bold;
+  padding-top: 10px;
+  margin-bottom: 5px;
+}
+
+header > p {
+  font-size: 1rem;
+  font-weight: semi-bold;
+}
+
+.medmoji-game {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 600px;
+}
+
+.developer-checklist {
+  display: none;
+}
+
+.game-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 5px;
+}
+
+.game-header span {
+  background-color: #333;
+  border: 1px solid #555;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #f9f4da;
+}
+
+.attempts-left-badge,
+.question-position,
+.question-type {
+  margin: 0;
+}
+
+.prompt-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin: 5px 0;
+}
+
+.emoji-prompt,
+.text-prompt {
+  display: flex;
+  gap: 12px;
+  padding: 2px 2px;
+  align-items: center;
+  justify-content: center;
+}
+
+.emoji-prompt {
+  font-size: 2.8rem;
+}
+
+.text-prompt {
+  font-size: 1.6rem;
+  color: white;
+  font-weight: 700;
+}
+
+.hint-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin: 5px 0;
+}
+
+.hint-toggle {
+  border-radius: 10px;
+  border: 1px solid #263069;
+  background: #13183a;
+  color: white;
+  padding: 9px 12px;
+  cursor: pointer;
+}
+
+.hint-toggle:hover {
+  background: #1c2350;
+}
+
+.hint {
+  width: 100%;
+  max-width: 600px;
+  background: #0e1330;
+  border: 1px dashed #2a3474;
+  color: #cfd8ff;
+  padding: 8px;
+  border-radius: 8px;
+  text-align: center;
+  margin: 5px 0;
+  font-size: 0.9rem;
+}
+
+.word-container {
+  background-color: #282c34;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  margin: 8px 0;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.word-container span {
+  color: white;
+  font-weight: bold;
+  width: 2.6rem;
+  height: 2.6rem;
+  text-align: center;
+  font-size: 1.35rem;
+  border: 2px solid #333;
+  border-bottom: 2px solid white;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.keyboard {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 8px 0;
+  max-width: 450px;
+  justify-content: center;
+  align-items: center;
+}
+
+.keyboard > button {
+  width: 35px;
+  height: 40px;
+  background-color: rgb(255, 204, 0);
+  color: rgb(0, 0, 0);
+  border: 1px solid #333;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-weight: bold;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  text-align: center;
+  cursor: pointer;
+}
+
+.keyboard > .key-correct {
+  background-color: #08f878;
+}
+
+.keyboard > button:disabled {
+  opacity: 0.3;
+  border: 1px solid #999;
+  cursor: not-allowed;
+}
+
+.keyboard > .key-wrong {
+  background-color: #ff0000;
+}
+
+.key:hover {
+  background-color: #666;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin: 5px 0;
+}
+
+button.primary {
+  background-color: #007bff;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+button.primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.controls button:not(.primary) {
+  background-color: #333;
+  color: white;
+  padding: 8px 16px;
+  border: 1px solid #555;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.controls button:not(.primary):disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.controls button:not(.primary):hover:not(:disabled) {
+  background-color: #444;
+}
+
+.status-message {
+  text-align: center;
+  color: white;
+  margin: 5px 0;
+  font-size: 0.9rem;
+}
+
+.scoreboard {
+  font-weight: 600;
+  color: #f9f4da;
+  margin: 5px 0;
+  font-size: 0.9rem;
+}
+
+.result-summary {
+  width: 100%;
+  max-width: 600px;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #333;
+  background: #282c34;
+  color: white;
+  font-family: monospace;
+  font-size: 0.8rem;
+  margin: 5px 0;
+  text-align: left;
+  max-height: 200px;
+  overflow-y: auto;
+}
