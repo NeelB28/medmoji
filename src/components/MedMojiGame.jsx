@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import clsx from "clsx";
 
 import { medQuestions } from "../data/medQuestions";
@@ -24,6 +25,7 @@ const getInitialRevealedLetters = (word) => {
 };
 
 function MedMojiGame() {
+  const navigate = useNavigate();
   const totalQuestions = medQuestions.length;
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -227,6 +229,11 @@ function MedMojiGame() {
     return `${m}:${s}`;
   };
 
+  const handleRestartQuiz = () => {
+    setResultArray([]);
+    loadQuestion(0);
+  };
+
   const renderPrompt = () => {
     if (currentQuestion.type === "emoji") {
       return (
@@ -275,6 +282,102 @@ function MedMojiGame() {
   });
 
   const developerChecklist = useMemo(() => checklist, [checklist]);
+
+  if (quizComplete) {
+    return (
+      <section className="medmoji-game" aria-live="polite">
+        <div
+          style={{
+            backgroundColor: theme.hintBg,
+            color: theme.hintFg,
+            border: `1px solid ${theme.border}`,
+            borderRadius: 12,
+            padding: 16,
+            width: "100%",
+            maxWidth: 700,
+            boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
+          }}
+        >
+          <h2 style={{ margin: 0, color: theme.questionFg, fontWeight: 800 }}>
+            Quiz Summary
+          </h2>
+          <div
+            style={{
+              marginTop: 8,
+              backgroundColor: theme.scoreBg,
+              color: theme.scoreFg,
+              border: `1px solid ${theme.border}`,
+              display: "inline-block",
+              padding: "6px 12px",
+              borderRadius: 6,
+              fontWeight: 800,
+            }}
+          >
+            Score: {correctAnswers} / {totalQuestions}
+          </div>
+
+          <ul style={{ textAlign: "left", marginTop: 12 }}>
+            {resultArray.map((r) => {
+              const q = medQuestions[r.questionIndex];
+              return (
+                <li key={r.questionIndex} style={{ marginBottom: 6 }}>
+                  <span style={{ fontWeight: 700 }}>
+                    Q{r.questionIndex + 1}:
+                  </span>{" "}
+                  <span style={{ opacity: 0.85 }}>
+                    {Array.isArray(q.question)
+                      ? q.question.join(" ")
+                      : q.question}
+                  </span>{" "}
+                  <span style={{ fontWeight: 700 }}>
+                    {r.correct ? "✅ Correct" : "❌ Incorrect"}
+                  </span>{" "}
+                  <span style={{ opacity: 0.85 }}>(Answer: {q.answer})</span>
+                </li>
+              );
+            })}
+          </ul>
+
+          <div
+            style={{
+              display: "flex",
+              gap: 8,
+              marginTop: 8,
+              justifyContent: "center",
+            }}
+          >
+            <button
+              className="primary"
+              onClick={() => navigate("/", { replace: false })}
+              style={{
+                backgroundColor: theme.scoreBg,
+                color: theme.scoreFg,
+                border: `1px solid ${theme.border}`,
+                padding: "10px 14px",
+                borderRadius: 8,
+                fontWeight: 800,
+              }}
+            >
+              Go to Home
+            </button>
+            <button
+              onClick={handleRestartQuiz}
+              style={{
+                backgroundColor: theme.hintButtonBg,
+                color: theme.hintButtonFg,
+                border: `1px solid ${theme.border}`,
+                padding: "10px 14px",
+                borderRadius: 8,
+                fontWeight: 800,
+              }}
+            >
+              Play Again
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="medmoji-game" aria-live="polite">
