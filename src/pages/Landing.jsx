@@ -143,7 +143,7 @@ function Landing() {
                 }
                 onMouseOut={(e) => (e.currentTarget.style.filter = "none")}
               >
-                Play MedMoji
+                Play Med‍मो‍ji
               </button>
             </Link>
           </div>
