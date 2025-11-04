@@ -34,6 +34,9 @@ function MedMojiGame() {
   const [statusMessage, setStatusMessage] = useState("");
   const [resultArray, setResultArray] = useState([]);
   const [checklist, setChecklist] = useState(buildChecklist(medQuestions[0]));
+  const [secondsLeft, setSecondsLeft] = useState(90);
+  const [timeLockout, setTimeLockout] = useState(false);
+  const [forceRevealAnswer, setForceRevealAnswer] = useState(false);
 
   const currentQuestion = useMemo(
     () => medQuestions[currentIndex],
@@ -75,6 +78,9 @@ function MedMojiGame() {
       setStatusMessage("");
       const checklistItems = buildChecklist(nextQuestion);
       setChecklist(checklistItems);
+      setSecondsLeft(90);
+      setTimeLockout(false);
+      setForceRevealAnswer(false);
       logValidationSummary(nextQuestion, index);
     },
     [logValidationSummary]
@@ -88,7 +94,7 @@ function MedMojiGame() {
   const handleGuessedLetterClick = useCallback(
     (letter) => {
       setGuessedLetters((prev) => {
-        if (isOverGame) return prev;
+        if (isOverGame || timeLockout) return prev;
         if (prev.includes(letter)) return prev;
 
         const newGuessed = [...prev, letter];
@@ -98,13 +104,13 @@ function MedMojiGame() {
         return newGuessed;
       });
     },
-    [isOverGame, currentAnswer]
+    [isOverGame, timeLockout, currentAnswer]
   );
 
   // Keyboard event handler
   useEffect(() => {
     const handleKeyPress = (event) => {
-      if (quizComplete || isOverGame) return;
+      if (quizComplete || isOverGame || timeLockout) return;
       if (event.ctrlKey || event.metaKey || event.altKey) return;
 
       const key = event.key.toUpperCase();
@@ -116,7 +122,7 @@ function MedMojiGame() {
 
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [quizComplete, isOverGame, handleGuessedLetterClick]);
+  }, [quizComplete, isOverGame, timeLockout, handleGuessedLetterClick]);
 
   const updateResultArray = useCallback(
     (wasCorrect) => {
@@ -140,7 +146,7 @@ function MedMojiGame() {
   }, [isGameWon, questionResolved, updateResultArray]);
 
   const handleCheckAnswer = () => {
-    if (questionResolved || attemptsLeft <= 0) return;
+    if (questionResolved || attemptsLeft <= 0 || timeLockout) return;
 
     if (!isGameWon) {
       setStatusMessage(
@@ -170,12 +176,55 @@ function MedMojiGame() {
   };
 
   const handleNextQuestion = () => {
-    if (!questionResolved && attemptsLeft > 0) {
+    if (!questionResolved && attemptsLeft > 0 && !timeLockout) {
       setStatusMessage("Resolve the current question before proceeding.");
       return;
     }
     if (currentIndex + 1 >= totalQuestions) return;
     loadQuestion(currentIndex + 1);
+  };
+
+  // Countdown with time-up behavior
+  useEffect(() => {
+    if (quizComplete) return;
+    if (questionResolved) return; // stop when resolved
+
+    const intervalId = window.setInterval(() => {
+      setSecondsLeft((prev) => {
+        if (prev <= 1) {
+          window.clearInterval(intervalId);
+          setStatusMessage(
+            `⏳ Time's up! The correct term was ${currentAnswer}.`
+          );
+          setForceRevealAnswer(true);
+          setTimeLockout(true);
+          setQuestionResolved(true);
+          updateResultArray(false);
+
+          window.setTimeout(() => {
+            if (currentIndex + 1 < totalQuestions) {
+              loadQuestion(currentIndex + 1);
+            }
+          }, 5000);
+
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => window.clearInterval(intervalId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentIndex, questionResolved]);
+
+  const formatTime = (totalSeconds) => {
+    const m = Math.floor(totalSeconds / 60)
+      .toString()
+      .padStart(2, "0");
+    const s = Math.floor(totalSeconds % 60)
+      .toString()
+      .padStart(2, "0");
+    return `${m}:${s}`;
   };
 
   const renderPrompt = () => {
@@ -234,29 +283,88 @@ function MedMojiGame() {
       </aside>
 
       {/* Game header */}
-      <div className="game-header">
-        <span
-          className="attempts-left-badge"
+      <div
+        className="game-header"
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          width: "100%",
+          maxWidth: 700,
+        }}
+      >
+        <div
+          className="game-header-board"
           style={{
-            backgroundColor: theme.attemptsBg,
-            color: theme.attemptsFg,
-            border: `1px solid ${theme.border}`,
-            fontWeight: 800,
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 5,
+            justifyContent: "center",
+            alignItems: "center",
+            width: "100%",
+            position: "relative",
+            zIndex: 1,
           }}
         >
-          Attempts Left: {attemptsLeft}
-        </span>
-        <span
-          className="question-position"
-          style={{
-            backgroundColor: theme.questionBg,
-            color: theme.questionFg,
-            border: `1px solid ${theme.border}`,
-            fontWeight: 800,
-          }}
-        >
-          Question {currentIndex + 1} / {totalQuestions}
-        </span>
+          <span
+            className="attempts-left-badge"
+            style={{
+              backgroundColor: theme.attemptsBg,
+              color: theme.attemptsFg,
+              border: `1px solid ${theme.border}`,
+              fontWeight: 800,
+              minWidth: 135,
+              display: "inline-block",
+              textAlign: "center",
+              boxSizing: "border-box",
+              padding: "8px 10px",
+              borderRadius: 6,
+            }}
+          >
+            Attempts Left: {attemptsLeft}
+          </span>
+          <span
+            className="score-badge"
+            style={{
+              backgroundColor: theme.scoreBg,
+              color: theme.scoreFg,
+              border: `1px solid ${theme.border}`,
+              fontWeight: 800,
+              padding: "8px 14px",
+              borderRadius: 6,
+              minWidth: 128,
+              display: "inline-block",
+              textAlign: "center",
+              boxSizing: "border-box",
+            }}
+            role="status"
+            aria-label="Score"
+          >
+            Score: {correctAnswers} / {totalQuestions}
+          </span>
+          <span
+            className="timer-badge"
+            style={{
+              backgroundColor: theme.scoreBg,
+              color: theme.scoreFg,
+              border: `1px solid ${theme.border}`,
+              fontWeight: 800,
+              padding: "8px 12px",
+              borderRadius: 6,
+              width: 110,
+              minWidth: 110,
+              textAlign: "center",
+              fontVariantNumeric: "tabular-nums",
+              fontFamily:
+                "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+              boxSizing: "border-box",
+              display: "inline-block",
+            }}
+            aria-label="Countdown timer"
+          >
+            ⏱️ {formatTime(secondsLeft)}
+          </span>
+        </div>
       </div>
 
       {/* Prompt */}
@@ -327,7 +435,13 @@ function MedMojiGame() {
       <div className="word-container">{letterElements}</div>
 
       {/* Keyboard layout - AssemblyEndgame style */}
-      <div className="keyboard">{keyboardElements}</div>
+      <div className="keyboard">
+        {keyboardElements.map((buttonEl) =>
+          React.cloneElement(buttonEl, {
+            disabled: buttonEl.props.disabled || timeLockout,
+          })
+        )}
+      </div>
 
       {/* Controls */}
       <div className="controls">
@@ -337,7 +451,8 @@ function MedMojiGame() {
           disabled={
             quizComplete ||
             currentIndex + 1 >= totalQuestions ||
-            (!questionResolved && attemptsLeft > 0)
+            (!questionResolved && attemptsLeft > 0) ||
+            timeLockout
           }
           className="primary"
         >
@@ -348,7 +463,7 @@ function MedMojiGame() {
       {/* Status message */}
       {statusMessage && <div className="status-message">{statusMessage}</div>}
 
-      {/* Scoreboard */}
+      {/* Question position now shown in former score area */}
       <div
         className="scoreboard"
         role="status"
@@ -363,11 +478,11 @@ function MedMojiGame() {
           fontWeight: 800,
         }}
       >
-        Score: {correctAnswers} / {totalQuestions}
+        Question {currentIndex + 1} / {totalQuestions}
       </div>
 
-      {/* Correct Answer Display - shown when attempts exhausted */}
-      {isGameLost && !isGameWon && (
+      {/* Correct Answer Display - shown when attempts exhausted or time up */}
+      {(isGameLost && !isGameWon) || forceRevealAnswer ? (
         <div
           className="correct-answer-display"
           style={{
@@ -383,7 +498,7 @@ function MedMojiGame() {
           Correct Answer:{" "}
           <span style={{ letterSpacing: "2px" }}>{currentAnswer}</span>
         </div>
-      )}
+      ) : null}
 
       {/* Result summary */}
       {quizComplete && (
